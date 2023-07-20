@@ -1,6 +1,7 @@
 package main
 
 import (
+	"taiji.dev/snippetbox/internal/assert"
 	"testing"
 	"time"
 )
@@ -36,9 +37,7 @@ func TestHumanDate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			hd := humanDate(tt.tm)
-			if hd != tt.want {
-				t.Errorf("want %q; got %q", tt.want, hd)
-			}
+			assert.Equal(t, hd, tt.want)
 		})
 	}
 }
