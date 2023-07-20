@@ -37,6 +37,7 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	//	flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 	app.render(w, http.StatusOK, "view.html", data)
@@ -72,7 +73,7 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
 	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "This field is invalid")
 
-	app.infoLog.Printf("%+v", form)
+	//app.infoLog.Printf("%+v", form)
 
 	if !form.Valid() {
 		data := app.newTemplateData(r)
@@ -86,5 +87,7 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, err)
 		return
 	}
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
+
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
