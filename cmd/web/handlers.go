@@ -92,15 +92,44 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
 
+type UserSignForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display a HTML form for signing up a new user...")
+	data := app.newTemplateData(r)
+	data.Form = UserSignForm{}
+	app.render(w, http.StatusOK, "signup.html", data)
 }
+
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Create a new user...")
+	var form UserSignForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	form.CheckField(validator.NotBlank(form.Name), "name", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field is not a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field is too short (minimum is 8 characters)")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "signup.html", data)
+		return
+	}
 }
+
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Display a HTML form for logging in a user...")
 }
+
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Authenticate and login the user...")
 }
