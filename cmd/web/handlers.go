@@ -170,7 +170,9 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 		app.render(w, http.StatusUnprocessableEntity, "login.html", data)
 		return
 	}
+	//app.infoLog.Printf("%+v", form)
 	id, err := app.users.Authenticate(form.Email, form.Password)
+	//app.infoLog.Printf("id: %d, err: %+v", id, err)
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
 			form.AddFieldError("generic", "Email or Password is incorrect")
