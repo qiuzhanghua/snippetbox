@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"taiji.dev/snippetbox/internal/assert"
@@ -24,19 +23,12 @@ func TestPing(t *testing.T) {
 }
 
 func TestPingE2E(t *testing.T) {
-	app := &application{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
-	}
-	ts := httptest.NewServer(app.routes())
-	defer ts.Close()
+	app := newTestApplication(t)
 
-	rs, err := ts.Client().Get(ts.URL + "/ping")
-	assert.Equal(t, err, nil)
-	assert.Equal(t, rs.StatusCode, http.StatusOK)
-	defer rs.Body.Close()
-	body, err := io.ReadAll(rs.Body)
-	assert.Equal(t, err, nil)
-	bytes.TrimSpace(body)
-	assert.Equal(t, string(body), "OK")
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+	code, _, body := ts.get(t, "/ping")
+	assert.Equal(t, code, http.StatusOK)
+
+	assert.Equal(t, body, "OK")
 }
