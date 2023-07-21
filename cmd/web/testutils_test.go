@@ -5,7 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
+	"taiji.dev/snippetbox/internal/assert"
 	"testing"
 )
 
@@ -22,6 +24,12 @@ type testServer struct {
 
 func newTestServer(t *testing.T, h http.Handler) *testServer {
 	ts := httptest.NewTLSServer(h)
+	jar, err := cookiejar.New(nil)
+	assert.Equal(t, err, nil)
+	ts.Client().Jar = jar
+	ts.Client().CheckRedirect = func(r *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 	return &testServer{ts}
 }
 
